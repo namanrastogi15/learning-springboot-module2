@@ -2,7 +2,7 @@ package com.codingshuttle.springbootwebtutorial.springbootwebtutorial.controller
 
 import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.dto.EmployeeDTO;
 import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.entities.EmployeeEntity;
-import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.repositories.EmployeeRepository;
+import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.services.EmployeeService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,32 +17,36 @@ public class EmployeeController {
 //        return "Secret message: asdfal@#$DASD";
 //    }
 
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
     }
 
-
     @GetMapping(path = "/{employeeID}")
-    public EmployeeEntity getEmployeeById(@PathVariable(name = "employeeID") Long id){
-           return employeeRepository.findById(id).orElse(null);
+
+//    public EmployeeEntity getEmployeeById(@PathVariable(name = "employeeID") Long id) {
+//        return employeeService.getEmployeeById(id);
+//    }
+
+    public EmployeeDTO getEmployeeById(@PathVariable(name = "employeeID") Long id) {
+        return employeeService.getEmployeeById(id);
     }
 
     @GetMapping
-    public List<EmployeeEntity> getAllEmployees(@RequestParam(required = false , name = "inputAge") Integer age,
-                                                @RequestParam(required = false) String sortBy){
-      return employeeRepository.findAll();
+    public List<EmployeeDTO> getAllEmployees(@RequestParam(required = false, name = "inputAge") Integer age,
+                                                @RequestParam(required = false) String sortBy) {
+        return employeeService.getAllEmployees();
     }
 
     @PostMapping
-    public EmployeeEntity createNewRecord(@RequestBody EmployeeEntity inputEmployee){
-        return employeeRepository.save(inputEmployee);
+    public EmployeeDTO createNewRecord(@RequestBody EmployeeDTO inputEmployee) {
+        return employeeService.createNewRecord(inputEmployee);
     }
 
     @PutMapping
-    public String updateEmployeeId(){
-         return "Hello from PuT";
+    public String updateEmployeeId() {
+        return "Hello from PuT";
     }
 
 }
