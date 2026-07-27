@@ -6,8 +6,12 @@ import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.entities.Em
 import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.repositories.EmployeeRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -26,27 +30,57 @@ public class EmployeeService {
 //        return employeeRepository.findById(id).orElse(null);
 //    }
 
-    public EmployeeDTO getEmployeeById(Long id) {
-        EmployeeEntity employeeEntity = employeeRepository.findById(id).orElse(null);
-        return modelMapper.map(employeeEntity, EmployeeDTO.class);
+    public Optional<EmployeeDTO> getEmployeeById(Long id) {
+//        EmployeeEntity employeeEntity = employeeRepository.findById(id).orElse(null);
+//        return modelMapper.map(employeeEntity, EmployeeDTO.class);
+
+        return employeeRepository.findById(id).map(employeeEntity -> modelMapper.map(employeeEntity, EmployeeDTO.class));
 
     }
 
     public List<EmployeeDTO> getAllEmployees() {
-        List<EmployeeEntity> employeeEntities =  employeeRepository.findAll();
-        return employeeEntities
-                .stream()
-                .map(employeeEntity -> modelMapper.map(employeeEntity , EmployeeDTO.class))
-                .collect(Collectors.toList());
+        List<EmployeeEntity> employeeEntities = employeeRepository.findAll();
+        return employeeEntities.stream().map(employeeEntity -> modelMapper.map(employeeEntity, EmployeeDTO.class)).collect(Collectors.toList());
 
     }
 
     public EmployeeDTO createNewRecord(EmployeeDTO inputEmployee) {
         // to check if user is Admin
         // Log
-        EmployeeEntity toSaveEntity = modelMapper.map(inputEmployee , EmployeeEntity.class);
-        EmployeeEntity savedEmployee =  employeeRepository.save(toSaveEntity);
-        return modelMapper.map(savedEmployee , EmployeeDTO.class);
+        EmployeeEntity toSaveEntity = modelMapper.map(inputEmployee, EmployeeEntity.class);
+        EmployeeEntity savedEmployee = employeeRepository.save(toSaveEntity);
+        return modelMapper.map(savedEmployee, EmployeeDTO.class);
+
+    }
+
+    public boolean isExistsByEmployeeId(Long employeeId) {
+        return employeeRepository.existsById(employeeId);
+    }
+
+    public EmployeeDTO updateEmployeeId(Long employeeId, EmployeeDTO employeeDTO) {
+        EmployeeEntity employeeEntity = modelMapper.map(employeeDTO, EmployeeEntity.class);
+        employeeEntity.setId(employeeId);
+        EmployeeEntity savedEmployeeEntity = employeeRepository.save(employeeEntity);
+        return modelMapper.map(savedEmployeeEntity, EmployeeDTO.class);
+    }
+
+    public boolean deleteEmployeeId(Long employeeId) {
+        boolean exists = isExistsByEmployeeId(employeeId);
+        if (!exists) return false;
+        employeeRepository.deleteById(employeeId);
+        return true;
+    }
+
+    public EmployeeDTO partialUpdateEmployeeId(Long employeeId, Map<String, Object> updates) {
+        boolean exixts = isExistsByEmployeeId(employeeId);
+        if (!exixts) return null;
+        EmployeeEntity employeeEntity = employeeRepository.findById(employeeId).get();
+        updates.forEach((field, value) -> {
+            Field fieldToBeUpdated = ReflectionUtils.findField(EmployeeEntity.class, field);
+            fieldToBeUpdated.setAccessible(true);
+            ReflectionUtils.setField(fieldToBeUpdated, employeeEntity, value);
+        });
+        return modelMapper.map(employeeRepository.save(employeeEntity), EmployeeDTO.class);
 
     }
 }
