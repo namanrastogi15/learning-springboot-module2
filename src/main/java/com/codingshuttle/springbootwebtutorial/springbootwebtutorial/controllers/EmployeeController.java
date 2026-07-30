@@ -1,6 +1,7 @@
 package com.codingshuttle.springbootwebtutorial.springbootwebtutorial.controllers;
 
 import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.dto.EmployeeDTO;
+import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.exceptions.ResourceNotFoundException;
 import com.codingshuttle.springbootwebtutorial.springbootwebtutorial.services.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -8,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.xml.crypto.NoSuchMechanismException;
 import java.util.List;
 import java.util.Map;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -38,9 +41,14 @@ public class EmployeeController {
         Optional<EmployeeDTO> employeeDTO = employeeService.getEmployeeById(id);
         return employeeDTO
                 .map(employeeDTO1 -> ResponseEntity.ok(employeeDTO1))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id " + id));
 
     }
+//
+//    @ExceptionHandler(NoSuchElementException.class)
+//    public ResponseEntity<String> handleEmployeeNotFound(NoSuchElementException exception){
+//        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+//    }
 
     @GetMapping
     public ResponseEntity<List<EmployeeDTO>> getAllEmployees(@RequestParam(required = false, name = "inputAge") Integer age,
